@@ -8,9 +8,9 @@ PHAST utlizes the Astromety.Net Plate-Solving framework to determine it's positi
 ```
 FlyCap 2.0
 Astrometry
-Pyth
+Python 2.7
 ```
-
+It is designed to run on linux sytems and has been tested on Ubuntu 14.04.
 More information will be published in an accompanying paper and extended documentation that is currently in development.
 
 
