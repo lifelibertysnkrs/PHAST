@@ -1,6 +1,6 @@
 Credits for PHAST's development go to:
 
-Nyki Anderson
+Nyki Anderson /n
 Anshula Gandhi
 Rahul Tiwari
 Mackenzie Kynoch
