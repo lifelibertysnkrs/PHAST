@@ -11,9 +11,8 @@ void setup() {
   // initialize serial:
   Serial.begin(9600);
   // make the pins outputs:
-  pinMode(redPin, OUTPUT);
-  pinMode(greenPin, OUTPUT);
-  pinMode(bluePin, OUTPUT);
+  pinMode(input, OUTPUT);
+
   Servo myservo;  // create servo object to control a servo 
                 
  
