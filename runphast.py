@@ -9,7 +9,7 @@ def focusCam(ms, increments): #ms indicates shutter speed, increments indicates 
     focused = False; #Starts with assumption that camera is not focused
     ser = serial.Serial('/dev/tty.usbserial', 9600) #Sets up Arduino
     ser.write("0") #Causes Arduino to reset focus
-    while !focused && increments != 0:
+    while focused ==0 and increments != 0:
         #Takes picture
         subprocess.check_output(["./TakePic/bin", str(ms)]) 
         #Runs astrometry
@@ -18,19 +18,19 @@ def focusCam(ms, increments): #ms indicates shutter speed, increments indicates 
         focusfile = open("focus.txt", "r")
         for line in focusfile:
             if "solved with index" in line: focused = True
-        if !focused:
+        if focused == 0:
             ser.write('1') #In arduino code, recieving 1 causes motor two turn focus by one increment
-            increment--
+            increment = increment -1
     focusfile.close()
 
     return focused
 
-def getLoc(ms)
+def getLoc(ms):
     subprocess.check_output(["./TakePic/bin", str(ms)])
 
     subprocess.check_output(["solve-field", "/TakePic/pics/img-"+ str(ms) +".png", ">", "results.txt"])
 
-    retults = open("focus.txt", "r")
+    results = open("focus.txt", "r")
     for line in results:
             
         if "Field center: (RA,Dec)" in line: return line

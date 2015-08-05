@@ -98,136 +98,7 @@ void PrintUSBCameraInfo( CameraInfo* pCamInfo, string dir )
     myfile << info;
     myfile.close();
 }
-/*
-This shows you the information for the GigE camera you are attached to.
-This shows much more info than the USB because a mac adress and IP address
-needed to be established. 
-This is printed in the termina and also written in a file within the folder
-you create.
-*/
-void PrintGigECameraInfo( CameraInfo* pCamInfo, string dir )
-{
 
-    ofstream myfile;
-
-    // Create a unique filename
-    char filename[512];
-    // turn dir from string to char*
-    const char * c = dir.c_str();
-    sprintf( filename, "%s/%s.txt", c, c);
-
-    myfile.open(filename);
-
-
-    char info[2048];
-
-    
-
-    char macAddress[64];
-    sprintf( 
-        macAddress, 
-        "%02X:%02X:%02X:%02X:%02X:%02X", 
-        pCamInfo->macAddress.octets[0],
-        pCamInfo->macAddress.octets[1],
-        pCamInfo->macAddress.octets[2],
-        pCamInfo->macAddress.octets[3],
-        pCamInfo->macAddress.octets[4],
-        pCamInfo->macAddress.octets[5]);
-
-    char ipAddress[32];
-    sprintf( 
-        ipAddress, 
-        "%u.%u.%u.%u", 
-        pCamInfo->ipAddress.octets[0],
-        pCamInfo->ipAddress.octets[1],
-        pCamInfo->ipAddress.octets[2],
-        pCamInfo->ipAddress.octets[3]);
-
-    char subnetMask[32];
-    sprintf( 
-        subnetMask, 
-        "%u.%u.%u.%u", 
-        pCamInfo->subnetMask.octets[0],
-        pCamInfo->subnetMask.octets[1],
-        pCamInfo->subnetMask.octets[2],
-        pCamInfo->subnetMask.octets[3]);
-
-    char defaultGateway[32];
-    sprintf( 
-        defaultGateway, 
-        "%u.%u.%u.%u", 
-        pCamInfo->defaultGateway.octets[0],
-        pCamInfo->defaultGateway.octets[1],
-        pCamInfo->defaultGateway.octets[2],
-        pCamInfo->defaultGateway.octets[3]);
-
-    sprintf(
-        info, 
-        "\n*** CAMERA INFORMATION ***\n"
-        "Serial number - %u\n"
-        "Camera model - %s\n"
-        "Camera vendor - %s\n"
-        "Sensor - %s\n"
-        "Resolution - %s\n"
-        "Firmware version - %s\n"
-        "Firmware build time - %s\n"
-        "GigE version - %u.%u\n"
-        "User defined name - %s\n"
-        "XML URL 1 - %s\n"
-        "XML URL 2 - %s\n"
-        "MAC address - %s\n"
-        "IP address - %s\n"
-        "Subnet mask - %s\n"
-        "Default gateway - %s\n\n",
-        pCamInfo->serialNumber,
-        pCamInfo->modelName,
-        pCamInfo->vendorName,
-        pCamInfo->sensorInfo,
-        pCamInfo->sensorResolution,
-        pCamInfo->firmwareVersion,
-        pCamInfo->firmwareBuildTime,
-        pCamInfo->gigEMajorVersion,
-        pCamInfo->gigEMinorVersion,
-        pCamInfo->userDefinedName,
-        pCamInfo->xmlURL1,
-        pCamInfo->xmlURL2,
-        macAddress,
-        ipAddress,
-        subnetMask,
-        defaultGateway );
-
-    cout << info;
-    myfile << info;
-    myfile.close();
-}
-
-void PrintStreamChannelInfo( GigEStreamChannel* pStreamChannel )
-{
-    char ipAddress[32];
-    sprintf( 
-        ipAddress, 
-        "%u.%u.%u.%u", 
-        pStreamChannel->destinationIpAddress.octets[0],
-        pStreamChannel->destinationIpAddress.octets[1],
-        pStreamChannel->destinationIpAddress.octets[2],
-        pStreamChannel->destinationIpAddress.octets[3]);
-
-    printf(
-        "Network interface: %u\n"
-        "Host post: %u\n"
-        "Do not fragment bit: %s\n"
-        "Packet size: %u\n"
-        "Inter packet delay: %u\n"
-        "Destination IP address: %s\n"
-        "Source port (on camera): %u\n\n",
-        pStreamChannel->networkInterfaceIndex,
-        pStreamChannel->hostPost,
-        pStreamChannel->doNotFragment == true ? "Enabled" : "Disabled",
-        pStreamChannel->packetSize,
-        pStreamChannel->interPacketDelay,
-        ipAddress,
-        pStreamChannel->sourcePort );
-}
 
 /*
 This is mainly for debugging purposes.
@@ -412,11 +283,7 @@ int runShutter(CameraBase& cam, string dir, int ms, bool isBias, int realMs, int
     Image rawImage;
     int imageCnt=1; 
     //converts ms to string
-    
-    
-    
-    
-                   
+  
         // Retrieve an image
          // Start capturing images
     	if(!isBias){
@@ -630,88 +497,6 @@ int runShutter(CameraBase& cam, string dir, int ms, bool isBias, int realMs, int
 }
 }
 
-int gigESetup(GigECamera& cam) {
-    Error error;
-
-    unsigned int numStreamChannels = 0;
-    error = cam.GetNumStreamChannels( &numStreamChannels );
-    if (error != PGRERROR_OK)
-    {
-        puts("1");
-        PrintError( error );
-        return -1;
-    }
-
-    for (unsigned int i=0; i < numStreamChannels; i++)
-    {
-        // get it
-        GigEStreamChannel streamChannel;
-        error = cam.GetGigEStreamChannelInfo( i, &streamChannel );
-        if (error != PGRERROR_OK)
-        {
-            puts("2");
-            PrintError( error );
-            return -1;
-        }
-
-        // modify it
-        unsigned int pkt;
-        unsigned int dly;
-
-        cout << "Enter the packet size.  Lower is safer, but slower. (576 to 9000): \n";
-        cin >> pkt;
-
-        cout << "Enter the delay.  Bigger is safer, but slower.  (0 to 6250): \n";
-        cin >> dly;
-
-
-        streamChannel.packetSize = pkt;
-        streamChannel.interPacketDelay = dly;
-
-        // set it
-        error = cam.SetGigEStreamChannelInfo( i, &streamChannel );
-        if (error != PGRERROR_OK)
-        {
-            puts("3");
-            PrintError( error );
-            return -1;
-        }
-
-
-
-        printf( "\nPrinting stream channel information for channel %u:\n", i );
-        PrintStreamChannelInfo( &streamChannel );
-    }    
-
-    printf( "Querying GigE image setting information...\n" );
-
-    GigEImageSettingsInfo imageSettingsInfo;
-    error = cam.GetGigEImageSettingsInfo( &imageSettingsInfo );
-    if (error != PGRERROR_OK)
-    {
-        puts("4");
-        PrintError( error );
-        return -1;
-    }
-
-    GigEImageSettings imageSettings;
-    imageSettings.offsetX = 0;
-    imageSettings.offsetY = 0;
-    imageSettings.height = imageSettingsInfo.maxHeight;
-    imageSettings.width = imageSettingsInfo.maxWidth;
-    imageSettings.pixelFormat = PIXEL_FORMAT_MONO8;
-
-    printf( "Setting GigE image settings...\n" );
-
-    error = cam.SetGigEImageSettings( &imageSettings );
-    if (error != PGRERROR_OK)
-    {
-        puts("5");
-        PrintError( error );
-        return -1;
-    }
-}
-
 int runSingleCamera(PGRGuid guid, CameraBase& cam, InterfaceType interfaceType, int shutter) {
 
     Error error;
@@ -740,142 +525,11 @@ int runSingleCamera(PGRGuid guid, CameraBase& cam, InterfaceType interfaceType, 
     string path = getPath(dir);
 
     //Print cam info
-    if(interfaceType == INTERFACE_GIGE) {
-        PrintGigECameraInfo(&camInfo, dir);
-        gigESetup(dynamic_cast<GigECamera&>(cam)); //get packet info, print stream info
-    }
-    else {
-        PrintUSBCameraInfo(&camInfo, dir);
-    }
-    
-
-    // Start capturing images
-    //error = cam.StartCapture();
-    //if (error != PGRERROR_OK)
-    //{
-    //    puts("8");
-    //    PrintError( error );
-    //    return -1;
-    //}
-
-
-    //collect ms shutter values
-
-    
-  
-
-
-
-	
-	/*
-	THIS IS WHERE YOU WANT TO CHANGE THINGS ACCORDING TO YOUR NEEDS!
-	This takes three images at a time: a bias, an image at a specific 
-	shutter speed, and another bias. The way I have set it up this time
-	will allow you to vary the shutter speed with each iteration.
-
-	If you wish to vary the pause time between the image and the final 
-	bias, you will need to change the code slightly. See the next block
-	of code that is commented out. If you wish to use the commented 
-	piece of code, simply comment out this block.
-	*/
+  	PrintUSBCameraInfo(&camInfo, dir);
    
     clock_t startTime = clock();
-  
-	//std::cout<<_t "Print f: "<<duration<<"\n";
-		//clock_t biasTime1 = clock();
-		//clock_t ticks = biasTime1-startTime;
-		//double timeInSeconds = ticks/(double) CLOCKS_PER_SEC;
-		//std::cout<< "Time for Bias 1: "<<timeInSeconds<<"\n";
-		
-		
-
-		//clock_t biasTime1after = clock();
-		//clock_t ticks2 = biasTime1after-startTime;
-		//double timeInSeconds2 = ticks2/(double) CLOCKS_PER_SEC;
-		//std::cout<< "Time after Bias 1: "<<timeInSeconds2<<"\n";
-	//std::cout<<"Print f: "<<duration<<"\n";
 	
-        runShutter(cam, path, shutter,false,shutter,3,false); //last argument specifies nothing here
-        
-        //runShutter(cam, path, n*100,false,n,3,false);
-	//std::cout<<"Print f: "<<duration<<"\n";
-	        //clock_t imageTime = clock();
-	        //sleep(2);
-		//clock_t ticks3 = imageTime-startTime;
-		//double timeInSeconds3 = ticks3/(double) CLOCKS_PER_SEC;
-		//std::cout<< "Time after Real Image: "<<timeInSeconds3<<"\n";	
-		
-		
-		
-		//clock_t biasTime2 = clock();
-		//clock_t ticks4 = biasTime2-startTime;
-		//double timeInSeconds4 = ticks4/(double) CLOCKS_PER_SEC;
-		//std::cout<< "Time after Bias 2: "<<timeInSeconds4<<"\n";
-	//runShutter(cam, path, shuttervals[n],false,shuttervals[n],3,false); 
-	
-    // End of chunk 1 for persistence
-
-	/*
-	This is commented out and should be uncommented if it better suits the
-	trial run you wish to have. 
-
-	With this block, you take a bias, an image, pause for a variable amount of 
-	time, and then take another bias. All images taken under this scheme
-	will have the same shutter time specified by staticShutter and initialized
-	by a prompt at terminal.
-	*/
-
-	
-	/*int staticShutter;
-
-	cout << "Enter a static shutter value (this will be the shutter value for the remainder of the trial): \n";
-	cin >> staticShutter;
-
-	for(int n=0; n<count; n++) {
-		runShutter(cam,path,0); // This is Bias Image 1
-        runShutter(cam, path,staticShutter);
-		sleep(n);
-		runShutter(cam,path,0); //This is Bias Image 2
-    }// End of chunk 2 for persistence
-	*/
-	// BIAS IMAGES
-	/*
-	cout << "WARNING: These are bias images, make sure 0 light is able to enter the sensor as a precaution.";
-	int numBias;
-
-	cout << "Enter the number of biases you wish to capture: \n";
-	cin >> numBias;
-*/
-
-/*
-	for(int n=0; n<numBias; n++) {
-		runShutter(cam,path,0,true,0,n,false);//edited 10JUN15
-        sleep(pauseTime);
-        }
-  */      
-    // End of bias taking code
-
-	
-	// DARK CURRENT TESTING
-	//cout << "WARNING: These are dark images, make sure 0 light is able to enter the sensor.";
-/*
-	for(int n=0; n<count; n++) {
-        runShutter(cam, path, shuttervals[n],false,n,n,true);
-		sleep(pauseTime);
-		
-	}	
-  */
-    // End of dark current images
-	
-
-    // Stop capturing images
-    //error = cam.StopCapture();
-    //if (error != PGRERROR_OK)
-    //{
-    //    puts("9");
-    //    PrintError( error );
-    //    return -1;
-    //}      
+        runShutter(cam, path, shutter,false,shutter,3,false); //last argument specifies nothing here     
 
     // Disconnect the camera
     error = cam.Disconnect();
@@ -897,16 +551,6 @@ int main(int argc, char** argv)
 
     Error error;
     int shutter = atoi(argv[1]);
-    
-
-    //auto force ip
-    error = BusManager::ForceAllIPAddressesAutomatically();
-    if (error != PGRERROR_OK)
-    {
-        puts("11");
-        PrintError( error );
-        return -1;
-    }
 
     //what flycapture gui does after this line
 
@@ -929,20 +573,6 @@ int main(int argc, char** argv)
 
     CameraInfo camInfo[10];
     unsigned int numCamInfo = 10;
-    error = BusManager::DiscoverGigECameras( camInfo, &numCamInfo );
-    if (error != PGRERROR_OK)
-    {
-        puts("12");
-        PrintError( error );
-        return -1;
-    }
-
-        printf( "Number of GigE cameras discovered: %u\n", numCamInfo );
-
-        // for (unsigned int i=0; i < numCamInfo; i++)
-        // {
-        //     PrintGigECameraInfo( &camInfo[i] );
-        // }
 
         unsigned int numCameras;
         error = busMgr.GetNumOfCameras(&numCameras);
